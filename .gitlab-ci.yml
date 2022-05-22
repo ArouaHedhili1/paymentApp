@@ -1,0 +1,57 @@
+# Node docker image on which this would be run
+image: node:latest
+
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - test
+  - deploy_develop
+  - deploy_production
+
+# Job 1:
+Test:
+  stage: test
+  only:
+    - melting-develop
+  except:
+    changes:
+    - ".gitlab-ci.yml"
+  script:
+    - npm install
+
+# Job 2:
+  
+# Deploy to staging
+Development:
+  image: ruby:latest
+  only:
+    - melting-develop
+  except:
+    changes:
+    - ".gitlab-ci.yml"
+  stage: deploy_develop
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - gem install faraday -v 1.8.0
+    - dpl --provider=heroku --app=melting-works --api-key=$HEROKU_API_KEY
+
+# Job 3:
+# Deploy to staging
+Production:
+  image: ruby:latest
+  only:
+    - melting-prod
+  except:
+    changes:
+    - ".gitlab-ci.yml"
+  stage: deploy_production
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - gem install faraday -v 1.8.0
+    - dpl --provider=heroku --app=meltingworksportal --api-key=$HEROKU_API_KEY
